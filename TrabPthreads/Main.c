@@ -9,43 +9,49 @@
 #include <stdlib.h>
 #include <time.h>
 
+/* CONSTANTES QUE NAO SAO CONSTANTES */
+#define NUM_THREADS 1
 #define LINHA 100
 #define COLUNA 100
+#define MACRO_LINHA 5
+#define MACRO_COLUNA 5
+/* GLOBAL VARS */
 int soma;
+int** matriz;
 
-typedef struct Matriz{
-	int linhas;
-	int colunas;
-	int *matrizA[];
-}Matriz;
 
-//void* threadFunc(void*);
+/*  REF METODOS */
 void* calcPrimo(void*);
 int **criaMatriz();
+
+/* MAIN */
 int main(int argc, char* argv[]) {
-	int **minhamatriz=criaMatriz();
+	criaMatriz();
 
 	for (int i = 0; i < LINHA; i++) {
 		for (int j = 0; j < COLUNA; j++) {
-			minhamatriz[i][j] = rand() % 3199;
-			printf(" %d ", minhamatriz[i][j]);
+			printf(" %d ", matriz[i][j]);
 		}
 	}
-	pthread_t thread;
-	int parametro = 0;
-	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	pthread_create(&thread, &attr, calcPrimo, &parametro);
-	pthread_join(thread, NULL);
+	pthread_t thread[NUM_THREADS];
+	/* CRIAÇÃO DAS THREADS */
+	int parametro = 10;
+	for (int i = 0; i < NUM_THREADS; i++) {
+		pthread_create(&thread[i], NULL, calcPrimo, &parametro);
+	}
+	/* JOIN NAS THREADS*/
+	for (int j = 0; j < NUM_THREADS; j++) {
+
+		pthread_join(thread[j], NULL);
+	}
 	printf("soma= %d ", soma);
 
 	printf("Print do Main");
 	return 0;
 }
-/*void* threadFunc(void* nenhum) {
-	printf("Print da Thread\n");
-}*/
 
+/* METODOS */
+// 1. metodo que confere se um numero é primo
 void* calcPrimo(void* param) {
 	int num = *((int*)param);
 	int cont = 0;
@@ -55,43 +61,42 @@ void* calcPrimo(void* param) {
 		}
 	}
 	if (cont == 2) {
-		printf("\nO numero %d E primo\n\n", num);
+		soma++;
 	}
 	else {
 		printf("\nO numero %d NAO e primo\n\n", num);
 	}
 	pthread_exit(0);
-}
+}//fim calcPrimo
+
+// 2. metodo que aloca memória e preenche a matriz
 
 int** criaMatriz() {
 
-	int** matriz;
 	int i, j;
 
 	//vetor de LINHAS ponteiros
 	matriz = malloc(LINHA * sizeof(int*));
-
+	//vetor de todos os elementos da matriz
 	matriz[0] = malloc(LINHA * COLUNA * sizeof(int));
-
-
+	//ajusta os ponteiros de linhas onde i>0
 	for (i = 1; i < LINHA; i++) {
 		for (j = 0; j < COLUNA; j++) {
 			matriz[i] = matriz[0] + i * COLUNA;
 		}
 	}
+	//percorre e preenche a matriz
+	for (int i = 0; i < LINHA; i++) {
+		for (int j = 0; j < COLUNA; j++) {
+			matriz[i][j] = rand() % 3199;
+		}
+	}
+}//fim criaMatriz()
 
-	
+// 3. metodo que cria as submatrizes "macroblocos"
 
-
-
-	//for (i = 0; i < LINHA; i++) {
-	//	for (j = 0; j < COLUNA; j++) {
-	//		print("%d", matriz[i][j]);
-	//	}
-	//}
-
-	return matriz;
-
-}
+int macroBloco() {
+	int** macro;
 
 
+}//fim macroBloco()
