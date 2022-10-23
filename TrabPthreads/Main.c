@@ -1,27 +1,30 @@
+/* Boa pergunta*/
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS 1
 #define _WINSOCK_DEPRECATED_NO_WARNINGS 1
 #pragma comment(lib,"pthreadVC2.lib")
 #define HAVE_STRUCT_TIMESPEC
 
+/*Includes*/
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <assert.h>
+
 
 /* CONSTANTES QUE NAO SAO CONSTANTES */
 #define NUM_THREADS 2
-#define LINHA 50
-#define COLUNA 50
-#define MACRO_LINHA 5
-#define MACRO_COLUNA 5
+#define LINHA 1000
+#define COLUNA 100
+#define MACRO_LINHA 10
+#define MACRO_COLUNA 10
 #define COLFIL (COLUNA/MACRO_COLUNA)
+
 /* GLOBAL VARS */
 int soma;
 int** matriz;
-//int** macro;
-
 
 
 
@@ -35,18 +38,21 @@ int** macroBloco(int param);
 /* MAIN */
 int main(int argc, char* argv[]) {
 	criaMatriz();
-	int **macroB=macroBloco(1);
+		
+		int **macroB=macroBloco(1);
+		printf("Print na Matriz TODA: \n\n");
 
 	for (int i = 0; i < LINHA; i++) {
 		for (int j = 0; j < COLUNA; j++) {
-			printf(" %d ", matriz[i][j]);
+			printf(" %d ", matriz[i][0]);
 		}
 		printf("\n");
 	}
-		printf("\n");
-		printf("\n");
 
-	macroBloco(35);
+
+		macroBloco(250);//Macrobloco 250
+
+		printf("\n\nPrint em um Macrobloco:\n\n");
 	for (int i = 0; i < MACRO_LINHA; i++) {
 		for (int j = 0; j < MACRO_COLUNA; j++) {
 			printf(" %d ", macroB[i][j]);
@@ -54,9 +60,12 @@ int main(int argc, char* argv[]) {
 		printf("\n");
 	}
 
-	
+	//vetor de threads
 	pthread_t thread[NUM_THREADS];
+
+
 	/* CRIAÇÃO DAS THREADS */
+
 	for (int k = 0; k < 10; k++) {
 		int parametro = matriz[0][k];
 		for (int i = 0; i < NUM_THREADS; i++) {
@@ -88,10 +97,10 @@ void* calcPrimo(void* param) {
 	}
 	if (cont == 0) {
 		soma++;
-		printf("\nO numero %d E PRIMO\n\n", n);
+		//printf("\nO numero %d E PRIMO\n\n", n);
 	}
 	else {
-		printf("\nO numero %d NAO e primo\n\n", n);
+		//printf("\nO numero %d NAO e primo\n\n", n);
 	}
 	pthread_exit(0);
 }//fim calcPrimo
@@ -122,6 +131,7 @@ void criaMatriz() {
 
 int** macroBloco(int n) {
 	//numero do macrobloco
+	int num = (int*)n;
 	int** macro;
 	int lin, col;
 
@@ -132,17 +142,9 @@ int** macroBloco(int n) {
 	for (lin = 0; lin < LINHA; lin++)
 		macro[lin] = malloc(COLUNA * sizeof(int));
 
+	/*LIMITE DE MACROBLOCOS*/assert(n < ((LINHA * COLUNA) / (MACRO_COLUNA * MACRO_LINHA)));
+	/*ULTIMOS MACROBLOCOS FORA DO LIMITE DE MEMORIA*/assert((LINHA * COLUNA) % (MACRO_COLUNA * MACRO_LINHA) == 0);
 
-	/*
-	macro = malloc(MACRO_LINHA * sizeof(int*));
-	macro[0] = malloc(MACRO_LINHA * MACRO_COLUNA * sizeof(int));
-	//ajusta os ponteiros de linhas onde i>0
-	for (lin = 1; lin < MACRO_LINHA; lin++) {
-		for (col = 0; col < MACRO_COLUNA; col++) {
-			macro[lin] = macro[col] + lin * MACRO_COLUNA;
-		}
-	}
-	*/
 	//calculo de onde o macrobloco entra na matriz
 	for (lin = 0; lin < MACRO_LINHA; lin++) {
 		for (col = 0; col < MACRO_COLUNA; col++) {
