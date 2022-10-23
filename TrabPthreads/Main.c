@@ -12,15 +12,15 @@
 
 /* CONSTANTES QUE NAO SAO CONSTANTES */
 #define NUM_THREADS 2
-#define LINHA 100
-#define COLUNA 100
+#define LINHA 50
+#define COLUNA 50
 #define MACRO_LINHA 5
 #define MACRO_COLUNA 5
 #define COLFIL (COLUNA/MACRO_COLUNA)
 /* GLOBAL VARS */
 int soma;
 int** matriz;
-int** macro;
+//int** macro;
 
 
 
@@ -30,11 +30,12 @@ int** macro;
 void* calcPrimo(void*);
 
 void criaMatriz();
-int** macroBloco();
+int** macroBloco(int param);
 
 /* MAIN */
 int main(int argc, char* argv[]) {
 	criaMatriz();
+	int **macroB=macroBloco(1);
 
 	for (int i = 0; i < LINHA; i++) {
 		for (int j = 0; j < COLUNA; j++) {
@@ -45,10 +46,10 @@ int main(int argc, char* argv[]) {
 		printf("\n");
 		printf("\n");
 
-	macroBloco(400);
+	macroBloco(35);
 	for (int i = 0; i < MACRO_LINHA; i++) {
 		for (int j = 0; j < MACRO_COLUNA; j++) {
-			printf(" %d ", macro[i][j]);
+			printf(" %d ", macroB[i][j]);
 		}
 		printf("\n");
 	}
@@ -121,7 +122,18 @@ void criaMatriz() {
 
 int** macroBloco(int n) {
 	//numero do macrobloco
+	int** macro;
 	int lin, col;
+
+	// aloca um vetor de LIN ponteiros para linhas
+	macro = malloc(LINHA * sizeof(int*));
+
+	// aloca cada uma das linhas (vetores de COL inteiros)
+	for (lin = 0; lin < LINHA; lin++)
+		macro[lin] = malloc(COLUNA * sizeof(int));
+
+
+	/*
 	macro = malloc(MACRO_LINHA * sizeof(int*));
 	macro[0] = malloc(MACRO_LINHA * MACRO_COLUNA * sizeof(int));
 	//ajusta os ponteiros de linhas onde i>0
@@ -130,7 +142,7 @@ int** macroBloco(int n) {
 			macro[lin] = macro[col] + lin * MACRO_COLUNA;
 		}
 	}
-
+	*/
 	//calculo de onde o macrobloco entra na matriz
 	for (lin = 0; lin < MACRO_LINHA; lin++) {
 		for (col = 0; col < MACRO_COLUNA; col++) {
@@ -140,5 +152,7 @@ int** macroBloco(int n) {
 
 		}
 	}
+
+	return macro;
 
 }//fim macroBloco()
