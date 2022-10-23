@@ -21,12 +21,18 @@
 #define MACRO_LINHA 10
 #define MACRO_COLUNA 10
 #define COLFIL (COLUNA/MACRO_COLUNA)
+#define TAMANHO ((LINHA * COLUNA) / (MACRO_COLUNA * MACRO_LINHA))
 
 /* GLOBAL VARS */
 int soma;
 int** matriz;
 
+struct Macro {
+	int num;
+	int** matrizmacro;
+}macroBloc[TAMANHO];
 
+//int** macro;
 
 /*  REF METODOS */
 //int calcPrimo(int n);
@@ -38,9 +44,6 @@ int** macroBloco(int param);
 /* MAIN */
 int main(int argc, char* argv[]) {
 	criaMatriz();
-		
-		int **macroB=macroBloco(1);
-		printf("Print na Matriz TODA: \n\n");
 
 	for (int i = 0; i < LINHA; i++) {
 		for (int j = 0; j < COLUNA; j++) {
@@ -49,13 +52,23 @@ int main(int argc, char* argv[]) {
 		printf("\n");
 	}
 
+	//criando 50 macroblocos
+	for (int i = 0; i < 50; i++) {
+		macroBloco(i);
+	}
 
-		macroBloco(250);//Macrobloco 250
-
-		printf("\n\nPrint em um Macrobloco:\n\n");
+		printf("\n\nPrint em um Macrobloco B:\n\n");
 	for (int i = 0; i < MACRO_LINHA; i++) {
 		for (int j = 0; j < MACRO_COLUNA; j++) {
-			printf(" %d ", macroB[i][j]);
+			printf(" %d ", macroBloc[0].matrizmacro[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("\n\nPrint em um Macrobloco C:\n\n");
+	for (int i = 0; i < MACRO_LINHA; i++) {
+		for (int j = 0; j < MACRO_COLUNA; j++) {
+			printf(" %d ", macroBloc[49].matrizmacro[i][j]);
 		}
 		printf("\n");
 	}
@@ -136,11 +149,11 @@ int** macroBloco(int n) {
 	int lin, col;
 
 	// aloca um vetor de LIN ponteiros para linhas
-	macro = malloc(LINHA * sizeof(int*));
+	macro = malloc(MACRO_LINHA * sizeof(int*));
 
 	// aloca cada uma das linhas (vetores de COL inteiros)
-	for (lin = 0; lin < LINHA; lin++)
-		macro[lin] = malloc(COLUNA * sizeof(int));
+	for (lin = 0; lin < MACRO_LINHA; lin++)
+		macro[lin] = malloc(MACRO_COLUNA * sizeof(int));
 
 	/*LIMITE DE MACROBLOCOS*/assert(n < ((LINHA * COLUNA) / (MACRO_COLUNA * MACRO_LINHA)));
 	/*ULTIMOS MACROBLOCOS FORA DO LIMITE DE MEMORIA*/assert((LINHA * COLUNA) % (MACRO_COLUNA * MACRO_LINHA) == 0);
@@ -149,12 +162,12 @@ int** macroBloco(int n) {
 	for (lin = 0; lin < MACRO_LINHA; lin++) {
 		for (col = 0; col < MACRO_COLUNA; col++) {
 			//N=0
-			macro[lin] = matriz[lin];
+			//macro[lin] = matriz[lin];
 			macro[lin][col] = matriz[(lin + (MACRO_LINHA * (n / COLFIL)))][col + (MACRO_COLUNA*n%COLFIL)];
 
 		}
 	}
-
+	macroBloc[n].matrizmacro = macro;
+	macroBloc[n].num = n;
 	return macro;
-
 }//fim macroBloco()
