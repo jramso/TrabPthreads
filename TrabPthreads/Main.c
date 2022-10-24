@@ -16,7 +16,7 @@
 
 /* CONSTANTES QUE NAO SAO CONSTANTES */
 #define NUM_THREADS 2
-#define LINHA 1000
+#define LINHA 100
 #define COLUNA 100
 #define MACRO_LINHA 10
 #define MACRO_COLUNA 10
@@ -28,22 +28,30 @@ int soma;
 int** matriz;
 
 struct Macro {
-	int num;
+	int num, read;
 	int** matrizmacro;
 }macroBloc[TAMANHO];
 
+pthread_mutex_t mutex;
+
+
 /*  REF METODOS */
 
-//int calcPrimo(int n);
-void* calcPrimo(void*);
+int calcPrimo(int n);
+//void* calcPrimo(void*);
 
 void criaMatriz();
 //int** macroBloco(int param);
 void macroBloco(int param);
 
+void* primoBloco(void*);
+
 /* MAIN */
 int main(int argc, char* argv[]) {
+
 	criaMatriz();
+	pthread_mutex_init(&mutex, NULL);
+
 
 	for (int i = 0; i < LINHA; i++) {
 		for (int j = 0; j < COLUNA; j++) {
@@ -79,10 +87,11 @@ int main(int argc, char* argv[]) {
 
 	/* CRIAÇÃO DAS THREADS */
 
-	for (int k = 0; k < 10; k++) {
-		int parametro = matriz[0][k];
+	for (int k = 0; k < TAMANHO; k++) {
+		//int parametro = matriz[0][k];
+		int parametro = 1;
 		for (int i = 0; i < NUM_THREADS; i++) {
-			pthread_create(&thread[i], NULL, calcPrimo, &parametro);
+			pthread_create(&thread[i], NULL, primoBloco, &parametro);
 		}
 
 	}
@@ -100,8 +109,8 @@ int main(int argc, char* argv[]) {
 /* METODOS */
 // 1. metodo que confere se um numero é primo
 //int calcPrimo(int n) {
-void* calcPrimo(void* param) {
-	int n = *((int*)param);
+int calcPrimo(int n) {
+	//int n = *((int*)param);
 	int cont = 0;
 	int qtdPrimo = 0;
 
@@ -117,7 +126,6 @@ void* calcPrimo(void* param) {
 		else {
 			//printf("\nO numero %d NAO e primo\n\n", n);
 		}
-	pthread_exit(0);
 }//fim calcPrimo
 
 // 2. metodo que aloca memória e preenche a matriz
@@ -178,13 +186,18 @@ void macroBloco(int n) {
 
 void* primoBloco(void* numblock) {
 
+	pthread_mutex_lock(&mutex);
 	int x = *((int*)numblock);
+	if (macroBloc[x].read=0){
+		for (int i = 0; i < MACRO_LINHA;i++) {
 
-	for (int i = 0; i < MACRO_LINHA;i++) {
-
-		for (int j=0;j<MACRO_COLUNA;j++){
-			macroBloc[x]
-		
+			for (int j=0;j<MACRO_COLUNA;j++){
+				calcPrimo(macroBloc[x].matrizmacro[i][j]);		
+			}
 		}
+		macroBloc[x].read = 1;
 	}
+
+	pthread_mutex_unlock(&mutex);
+	pthread_exit(0);
 }
