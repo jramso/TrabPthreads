@@ -32,14 +32,14 @@ struct Macro {
 	int** matrizmacro;
 }macroBloc[TAMANHO];
 
-//int** macro;
-
 /*  REF METODOS */
+
 //int calcPrimo(int n);
 void* calcPrimo(void*);
 
 void criaMatriz();
-int** macroBloco(int param);
+//int** macroBloco(int param);
+void macroBloco(int param);
 
 /* MAIN */
 int main(int argc, char* argv[]) {
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	//criando 50 macroblocos
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < TAMANHO; i++) {
 		macroBloco(i);
 	}
 
@@ -103,18 +103,20 @@ int main(int argc, char* argv[]) {
 void* calcPrimo(void* param) {
 	int n = *((int*)param);
 	int cont = 0;
-	for (int i = 2; i <= sqrt(n); i++) {
-		if (n % i == 0) {
-			cont++;
+	int qtdPrimo = 0;
+
+		for (int i = 2; i <= sqrt(n); i++) {
+			if (n % i == 0) {
+				cont++;
+			}
 		}
-	}
-	if (cont == 0) {
-		soma++;
-		//printf("\nO numero %d E PRIMO\n\n", n);
-	}
-	else {
-		//printf("\nO numero %d NAO e primo\n\n", n);
-	}
+		if (cont == 0) {
+			soma++;
+			//printf("\nO numero %d E PRIMO\n\n", n);
+		}
+		else {
+			//printf("\nO numero %d NAO e primo\n\n", n);
+		}
 	pthread_exit(0);
 }//fim calcPrimo
 
@@ -142,7 +144,7 @@ void criaMatriz() {
 
 // 3. metodo que cria as submatrizes "macroblocos"
 
-int** macroBloco(int n) {
+void macroBloco(int n) {
 	//numero do macrobloco
 	int num = (int*)n;
 	int** macro;
@@ -169,5 +171,20 @@ int** macroBloco(int n) {
 	}
 	macroBloc[n].matrizmacro = macro;
 	macroBloc[n].num = n;
-	return macro;
+	//return macro;
 }//fim macroBloco()
+
+// 4. Metodo executado pelas threads
+
+void* primoBloco(void* numblock) {
+
+	int x = *((int*)numblock);
+
+	for (int i = 0; i < MACRO_LINHA;i++) {
+
+		for (int j=0;j<MACRO_COLUNA;j++){
+			macroBloc[x]
+		
+		}
+	}
+}
