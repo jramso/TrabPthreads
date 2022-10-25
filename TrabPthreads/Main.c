@@ -16,19 +16,19 @@
 
 /* CONSTANTES QUE NAO SAO CONSTANTES */
 #define NUM_THREADS 2
-#define LINHA 100
-#define COLUNA 100
+#define LINHA 500
+#define COLUNA 500
 #define MACRO_LINHA 10
 #define MACRO_COLUNA 10
 #define COLFIL (COLUNA/MACRO_COLUNA)
 #define TAMANHO ((LINHA * COLUNA) / (MACRO_COLUNA * MACRO_LINHA))
 
 /* GLOBAL VARS */
-int soma;
+int soma=0;
 int** matriz;
 
 struct Macro {
-	int num, read;
+	int num,read;
 	int** matrizmacro;
 }macroBloc[TAMANHO];
 
@@ -52,34 +52,33 @@ int main(int argc, char* argv[]) {
 	criaMatriz();
 	pthread_mutex_init(&mutex, NULL);
 
+	//for (int i = 0; i < LINHA; i++) {
+	//	for (int j = 0; j < COLUNA; j++) {
+	//		printf(" %d ", matriz[i][0]);
+	//	}
+	//	printf("\n");
+	//}
 
-	for (int i = 0; i < LINHA; i++) {
-		for (int j = 0; j < COLUNA; j++) {
-			printf(" %d ", matriz[i][0]);
-		}
-		printf("\n");
-	}
-
-	//criando 50 macroblocos
+	//criando TAMANHO macroblocos
 	for (int i = 0; i < TAMANHO; i++) {
 		macroBloco(i);
 	}
 
-		printf("\n\nPrint em um Macrobloco B:\n\n");
-	for (int i = 0; i < MACRO_LINHA; i++) {
-		for (int j = 0; j < MACRO_COLUNA; j++) {
-			printf(" %d ", macroBloc[0].matrizmacro[i][j]);
-		}
-		printf("\n");
-	}
+	//	printf("\n\nPrint em um Macrobloco B:\n\n");
+	//for (int i = 0; i < MACRO_LINHA; i++) {
+	//	for (int j = 0; j < MACRO_COLUNA; j++) {
+	//		printf(" %d ", macroBloc[0].matrizmacro[i][j]);
+	//	}
+	//	printf("\n");
+	//}
 
-	printf("\n\nPrint em um Macrobloco C:\n\n");
-	for (int i = 0; i < MACRO_LINHA; i++) {
-		for (int j = 0; j < MACRO_COLUNA; j++) {
-			printf(" %d ", macroBloc[49].matrizmacro[i][j]);
-		}
-		printf("\n");
-	}
+	//printf("\n\nPrint em um Macrobloco C:\n\n");
+	//for (int i = 0; i < MACRO_LINHA; i++) {
+	//	for (int j = 0; j < MACRO_COLUNA; j++) {
+	//		printf(" %d ", macroBloc[49].matrizmacro[i][j]);
+	//	}
+	//	printf("\n");
+	//}
 
 	//vetor de threads
 	pthread_t thread[NUM_THREADS];
@@ -89,30 +88,32 @@ int main(int argc, char* argv[]) {
 
 	for (int k = 0; k < TAMANHO; k++) {
 		//int parametro = matriz[0][k];
-		int parametro = 1;
+		int parametro = k;
 		for (int i = 0; i < NUM_THREADS; i++) {
 			pthread_create(&thread[i], NULL, primoBloco, &parametro);
+			printf("IN MAIN: numero da thread : %d\n", i);
+			printf("IN MAIN: numero do macrobloco: %d\n", k);
+		}
+		printf("-------------\n");
+	}
+		/* JOIN NAS THREADS*/
+		for (int j = 0; j < NUM_THREADS; j++) {
+			printf("\nIN MAIN: numero do Join %d\n", j);
+			pthread_join(thread[j], NULL);
 		}
 
-	}
-	/* JOIN NAS THREADS*/
-	for (int j = 0; j < NUM_THREADS; j++) {
-
-		pthread_join(thread[j], NULL);
-	}
 	printf("soma= %d ", soma);
 
 	printf("Print do Main");
+	pthread_exit(NULL);
 	return 0;
 }
 
 /* METODOS */
 // 1. metodo que confere se um numero é primo
-//int calcPrimo(int n) {
 int calcPrimo(int n) {
 	//int n = *((int*)param);
 	int cont = 0;
-	int qtdPrimo = 0;
 
 		for (int i = 2; i <= sqrt(n); i++) {
 			if (n % i == 0) {
@@ -122,14 +123,15 @@ int calcPrimo(int n) {
 		if (cont == 0) {
 			soma++;
 			//printf("\nO numero %d E PRIMO\n\n", n);
+			return 1;
 		}
 		else {
 			//printf("\nO numero %d NAO e primo\n\n", n);
+			return 0;
 		}
 }//fim calcPrimo
 
 // 2. metodo que aloca memória e preenche a matriz
-
 void criaMatriz() {
 
 	int i, j;
@@ -144,14 +146,13 @@ void criaMatriz() {
 	//percorre e preenche a matriz
 	for (int i = 0; i < LINHA; i++) {
 		for (int j = 0; j < COLUNA; j++) {
-			//matriz[i][j] = rand() % 32000;
-			matriz[i][j] = i;
+			matriz[i][j] = rand() % 32000;
+			//matriz[i][j] = i;
 		}
 	}
 }//fim criaMatriz()
 
 // 3. metodo que cria as submatrizes "macroblocos"
-
 void macroBloco(int n) {
 	//numero do macrobloco
 	int num = (int*)n;
@@ -178,26 +179,36 @@ void macroBloco(int n) {
 		}
 	}
 	macroBloc[n].matrizmacro = macro;
-	macroBloc[n].num = n;
-	//return macro;
+	macroBloc[n].num = 0;
+	macroBloc[n].read = 0;
+	return macro;
 }//fim macroBloco()
 
 // 4. Metodo executado pelas threads
 
 void* primoBloco(void* numblock) {
-
+	int qtdPrimo = 0;
 	pthread_mutex_lock(&mutex);
 	int x = *((int*)numblock);
-	if (macroBloc[x].read=0){
-		for (int i = 0; i < MACRO_LINHA;i++) {
+	printf("\nEntrou Macrobloco [%d] \n", x);
+	if (macroBloc[x].read == 0) {
+		for (int i = 0; i < MACRO_LINHA; i++) {
 
-			for (int j=0;j<MACRO_COLUNA;j++){
-				calcPrimo(macroBloc[x].matrizmacro[i][j]);		
+			for (int j = 0; j < MACRO_COLUNA; j++) {
+				qtdPrimo = calcPrimo(macroBloc[x].matrizmacro[i][j]);
 			}
 		}
+		printf("\nFez algo [%d]\n", x);
 		macroBloc[x].read = 1;
+		macroBloc[x].num = qtdPrimo;
+	}
+	else if (macroBloc[x].read == 1) {
+		printf("Saiu [%d] SEM CALCULAR\n",x);
+		pthread_mutex_unlock(&mutex);
+		pthread_exit(0);
 	}
 
+	printf("Saiu [%d]\n",x);
 	pthread_mutex_unlock(&mutex);
 	pthread_exit(0);
 }
