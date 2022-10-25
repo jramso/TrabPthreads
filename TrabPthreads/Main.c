@@ -15,9 +15,9 @@
 
 
 /* CONSTANTES QUE NAO SAO CONSTANTES */
-#define NUM_THREADS 2
+#define NUM_THREADS 6
 #define LINHA 500
-#define COLUNA 500
+#define COLUNA 50
 #define MACRO_LINHA 10
 #define MACRO_COLUNA 10
 #define COLFIL (COLUNA/MACRO_COLUNA)
@@ -26,18 +26,20 @@
 /* GLOBAL VARS */
 int soma=0;
 int** matriz;
+int livre = 0;
 
 struct Macro {
-	int num,read;
+	int read;
 	int** matrizmacro;
 }macroBloc[TAMANHO];
 
 pthread_mutex_t mutex;
+pthread_mutex_t mutexLivre;
 
 
 /*  REF METODOS */
 
-int calcPrimo(int n);
+//int calcPrimo(int n);
 //void* calcPrimo(void*);
 
 void criaMatriz();
@@ -51,6 +53,7 @@ int main(int argc, char* argv[]) {
 
 	criaMatriz();
 	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_init(&mutexLivre, NULL);
 
 	//for (int i = 0; i < LINHA; i++) {
 	//	for (int j = 0; j < COLUNA; j++) {
@@ -86,49 +89,50 @@ int main(int argc, char* argv[]) {
 
 	/* CRIAÇÃO DAS THREADS */
 
-	for (int k = 0; k < TAMANHO; k++) {
+	for (int k = 0; k < (TAMANHO/NUM_THREADS)+1; k++) {
 		//int parametro = matriz[0][k];
-		int parametro = k;
 		for (int i = 0; i < NUM_THREADS; i++) {
-			pthread_create(&thread[i], NULL, primoBloco, &parametro);
+			pthread_create(&thread[i], NULL, primoBloco, &livre);
 			printf("IN MAIN: numero da thread : %d\n", i);
-			printf("IN MAIN: numero do macrobloco: %d\n", k);
+			printf("IN MAIN: numero do macrobloco: %d\n", livre);
 		}
 		printf("-------------\n");
-	}
 		/* JOIN NAS THREADS*/
 		for (int j = 0; j < NUM_THREADS; j++) {
 			printf("\nIN MAIN: numero do Join %d\n", j);
 			pthread_join(thread[j], NULL);
 		}
+	}
 
-	printf("soma= %d ", soma);
+	printf("SOMA = %d \n", soma);
 
 	printf("Print do Main");
 	pthread_exit(NULL);
 	return 0;
 }
 
+
 /* METODOS */
 // 1. metodo que confere se um numero é primo
 int calcPrimo(int n) {
 	//int n = *((int*)param);
-	int cont = 0;
 
+		int cont = 0;
 		for (int i = 2; i <= sqrt(n); i++) {
 			if (n % i == 0) {
 				cont++;
 			}
 		}
 		if (cont == 0) {
+		pthread_mutex_lock(&mutex);
 			soma++;
+		pthread_mutex_unlock(&mutex);
 			//printf("\nO numero %d E PRIMO\n\n", n);
-			return 1;
 		}
 		else {
 			//printf("\nO numero %d NAO e primo\n\n", n);
-			return 0;
 		}
+		pthread_exit(0);
 }//fim calcPrimo
 
 // 2. metodo que aloca memória e preenche a matriz
@@ -147,7 +151,6 @@ void criaMatriz() {
 	for (int i = 0; i < LINHA; i++) {
 		for (int j = 0; j < COLUNA; j++) {
 			matriz[i][j] = rand() % 32000;
-			//matriz[i][j] = i;
 		}
 	}
 }//fim criaMatriz()
@@ -179,7 +182,6 @@ void macroBloco(int n) {
 		}
 	}
 	macroBloc[n].matrizmacro = macro;
-	macroBloc[n].num = 0;
 	macroBloc[n].read = 0;
 	return macro;
 }//fim macroBloco()
@@ -188,10 +190,13 @@ void macroBloco(int n) {
 
 void* primoBloco(void* numblock) {
 	int qtdPrimo = 0;
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&mutexLivre);
+	livre++;
+	pthread_mutex_unlock(&mutexLivre);
+
 	int x = *((int*)numblock);
-	printf("\nEntrou Macrobloco [%d] \n", x);
-	if (macroBloc[x].read == 0) {
+	if (macroBloc[x].read == 0 && x<TAMANHO) {
+		printf("\nEntrou Macrobloco [%d] \n", x);
 		for (int i = 0; i < MACRO_LINHA; i++) {
 
 			for (int j = 0; j < MACRO_COLUNA; j++) {
@@ -200,15 +205,11 @@ void* primoBloco(void* numblock) {
 		}
 		printf("\nFez algo [%d]\n", x);
 		macroBloc[x].read = 1;
-		macroBloc[x].num = qtdPrimo;
 	}
 	else if (macroBloc[x].read == 1) {
 		printf("Saiu [%d] SEM CALCULAR\n",x);
-		pthread_mutex_unlock(&mutex);
-		pthread_exit(0);
 	}
 
 	printf("Saiu [%d]\n",x);
-	pthread_mutex_unlock(&mutex);
 	pthread_exit(0);
 }
